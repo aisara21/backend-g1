@@ -1,8 +1,8 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from todo_app.models import TodoList, Todo
 from todo_app.serializers import TodoListSerializer, TodoSerializer
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 import json
 
 
@@ -18,8 +18,8 @@ def todo_lists_handler(request):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data, status=200)
-        return JsonResponse(serializer.errors, status=400)
+            return JsonResponse(serializer.data, status=200, safe=False)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST, safe=False)
     return JsonResponse({'message': 'Request is not supported'}, status=400, safe=False)
 
 
@@ -47,7 +47,7 @@ def todo_list_handler(request, pk):
     todo_list = result['todo_list']
 
     if request.method == 'GET':
-        serializer = TodoListSerializer(todo_list)
+        serializer = TodoListSerializer(todo_list, many=True)
         return JsonResponse(serializer.data, safe=False)
     if request.method == 'PUT':
         data = json.loads(request.body)
